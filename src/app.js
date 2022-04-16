@@ -1,3 +1,11 @@
+const { Appsignal } = require("@appsignal/nodejs");
+const appsignal = new Appsignal({
+    active: true,
+    name: "todo",
+    pushApiKey: process.env.APPSIGNAL_PUSH_API_KEY
+  });
+const { expressMiddleware,expressErrorHandler } = require("@appsignal/express");
+
 // Regular imports
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -15,6 +23,7 @@ app.use(logger)
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.json())
 
+app.use(expressMiddleware(appsignal))
 
 
 // using routes
@@ -41,6 +50,7 @@ app.use((err, req, res, next) => {
         res.json(err._message || err.message)
     }
 
-    next()
+    next(err)
 })
+app.use(expressErrorHandler(appsignal))
 module.exports = app
